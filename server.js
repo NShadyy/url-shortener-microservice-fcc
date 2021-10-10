@@ -5,10 +5,20 @@ const express = require('express');
 const rTracer = require('cls-rtracer');
 const { ApiLoggerMiddleware, Logger } = require('./logger');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const { ShortUrl } = require('./db/models/shortUrl.model');
+const { connectToDb } = require('./db/utils/connect.util');
+
 require('dotenv').config();
 
 // init project
 var app = express();
+
+// connect to database
+connectToDb();
+
+// body parser middleware
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // logging middleware
 app.use(rTracer.expressMiddleware(), ApiLoggerMiddleware);
@@ -28,6 +38,83 @@ app.get('/', function (req, res) {
 // your first API endpoint...
 app.get('/api/hello', function (req, res) {
   res.json({ greeting: 'hello API' });
+});
+
+app.post('/api/shorturl', function (req, res) {
+  const originalUrl = req.body.url;
+  Logger.info('Server.Post.ShortUrl.started', {
+    originalUrl,
+  });
+
+  ShortUrl.findOne({
+    originalUrl,
+  })
+    .then((url) => {
+      if (url) {
+        Logger.info('Server.Post.ShortUrl.success', {
+          url,
+        });
+
+        res.json({
+          original_url: originalUrl,
+          short_url: Number(url.id),
+        });
+      } else {
+        ShortUrl.create({
+          originalUrl,
+        })
+          .then((newUrl) => {
+            Logger.info('Server.Post.ShortUrl.success', {
+              url: newUrl,
+            });
+
+            res.json({
+              original_url: originalUrl,
+              short_url: Number(newUrl.id),
+            });
+          })
+          .catch((error) => {
+            Logger.error('Server.Post.ShortUrl.failed', error, 'Query failed: create');
+            res.status(500).json({ error: 'Internal server error' });
+          });
+      }
+    })
+    .catch((error) => {
+      Logger.error('Server.Post.ShortUrl.failed', error, 'Query failed: findOne');
+      res.status(500).json({ error: 'Internal server error' });
+    });
+});
+
+app.get('/api/shorturl/:id', function (req, res) {
+  const shortUrlId = req.params.id;
+  Logger.info('Server.Get.ShortUrl.started', {
+    shortUrlId,
+  });
+
+  if (Number.isNaN(Number(shortUrlId)) || shortUrlId === '') {
+    res.status(400).json({
+      error: 'Bad request',
+    });
+  }
+
+  ShortUrl.findById(Number(shortUrlId))
+    .then((url) => {
+      if (url) {
+        Logger.info('Server.Get.ShortUrl.success', {
+          url,
+        });
+
+        res.redirect(url.originalUrl);
+      } else {
+        res.json({
+          error: 'No short URL found for the given input',
+        });
+      }
+    })
+    .catch((error) => {
+      Logger.error('Server.Get.ShortUrl.failed', error, 'Query failed: findById');
+      res.status(500).json({ error: 'Internal server error' });
+    });
 });
 
 // listen for requests :)
