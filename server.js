@@ -46,6 +46,21 @@ app.post('/api/shorturl', function (req, res) {
     originalUrl,
   });
 
+  let url;
+  try {
+    url = new URL(originalUrl);
+  } catch (_) {
+    Logger.error('Server.Post.ShortUrl.invalidUrl', new Error('Invalid url'));
+    res.status(400).json({ error: 'invalid url' });
+    return;
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    Logger.error('Server.Post.ShortUrl.invalidUrl', new Error('Invalid url'));
+    res.status(400).json({ error: 'invalid url' });
+    return;
+  }
+
   ShortUrl.findOne({
     originalUrl,
   })
@@ -106,7 +121,7 @@ app.get('/api/shorturl/:id', function (req, res) {
 
         res.redirect(url.originalUrl);
       } else {
-        res.json({
+        res.status(404).json({
           error: 'No short URL found for the given input',
         });
       }
