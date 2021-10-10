@@ -51,13 +51,13 @@ app.post('/api/shorturl', function (req, res) {
     url = new URL(originalUrl);
   } catch (_) {
     Logger.error('Server.Post.ShortUrl.invalidUrl', new Error('Invalid url'));
-    res.status(400).json({ error: 'Invalid URL' });
+    res.status(200).json({ error: 'Invalid URL' });
     return;
   }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     Logger.error('Server.Post.ShortUrl.invalidUrl', new Error('Invalid url'));
-    res.status(400).json({ error: 'Invalid URL' });
+    res.status(200).json({ error: 'Invalid URL' });
     return;
   }
 
