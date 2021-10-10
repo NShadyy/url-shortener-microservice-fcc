@@ -51,13 +51,13 @@ app.post('/api/shorturl', function (req, res) {
     url = new URL(originalUrl);
   } catch (_) {
     Logger.error('Server.Post.ShortUrl.invalidUrl', new Error('Invalid url'));
-    res.status(400).json({ error: 'invalid url' });
+    res.status(400).json({ error: 'Invalid URL' });
     return;
   }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     Logger.error('Server.Post.ShortUrl.invalidUrl', new Error('Invalid url'));
-    res.status(400).json({ error: 'invalid url' });
+    res.status(400).json({ error: 'Invalid URL' });
     return;
   }
 
@@ -90,13 +90,13 @@ app.post('/api/shorturl', function (req, res) {
           })
           .catch((error) => {
             Logger.error('Server.Post.ShortUrl.failed', error, 'Query failed: create');
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Internal Server Error' });
           });
       }
     })
     .catch((error) => {
       Logger.error('Server.Post.ShortUrl.failed', error, 'Query failed: findOne');
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal Server Error' });
     });
 });
 
@@ -108,7 +108,7 @@ app.get('/api/shorturl/:id', function (req, res) {
 
   if (Number.isNaN(Number(shortUrlId)) || shortUrlId === '') {
     res.status(400).json({
-      error: 'Bad request',
+      error: 'Bad Request',
     });
   }
 
@@ -128,7 +128,7 @@ app.get('/api/shorturl/:id', function (req, res) {
     })
     .catch((error) => {
       Logger.error('Server.Get.ShortUrl.failed', error, 'Query failed: findById');
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal Server Error' });
     });
 });
 
