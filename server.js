@@ -1,24 +1,36 @@
-require('dotenv').config();
+// server.js
+// where your node app starts
+
 const express = require('express');
+const rTracer = require('cls-rtracer');
+const { ApiLoggerMiddleware, Logger } = require('./logger');
 const cors = require('cors');
-const app = express();
+require('dotenv').config();
 
-// Basic Configuration
-const port = process.env.PORT || 3000;
+// init project
+var app = express();
 
-app.use(cors());
+// logging middleware
+app.use(rTracer.expressMiddleware(), ApiLoggerMiddleware);
 
-app.use('/public', express.static(`${process.cwd()}/public`));
+// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
+// so that your API is remotely testable by FCC
+app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
-app.get('/', function(req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+// http://expressjs.com/en/starter/static-files.html
+app.use(express.static('public'));
+
+// http://expressjs.com/en/starter/basic-routing.html
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/views/index.html');
 });
 
-// Your first API endpoint
-app.get('/api/hello', function(req, res) {
+// your first API endpoint...
+app.get('/api/hello', function (req, res) {
   res.json({ greeting: 'hello API' });
 });
 
-app.listen(port, function() {
-  console.log(`Listening on port ${port}`);
+// listen for requests :)
+var listener = app.listen(process.env.PORT, function () {
+  Logger.info('Server', `Your app is listening on port ${listener.address().port}`);
 });
